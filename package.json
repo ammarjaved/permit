@@ -1,8 +1,12 @@
 {
   "name": "permit",
+  "homepage": "/permit",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.4.7",
     "@radix-ui/react-slot": "^1.1.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -11,9 +15,13 @@
     "bootstrap": "^5.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.475.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-leaflet": "^4.2.1",
+    "react-leaflet-draw": "^0.20.6",
+    "react-router-dom": "^7.3.0",
     "react-scripts": "5.0.1",
     "tailwind-merge": "^3.0.2",
     "web-vitals": "^2.1.4"
