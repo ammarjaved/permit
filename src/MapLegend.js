@@ -2,9 +2,9 @@ import React from 'react';
 
 const MapLegend = () => {
   const legendItems = [
-    { id: 'line1', label: 'Apprroved', color: 'green' },
-    { id: 'line2', label: 'New', color: 'blue' },
+     { id: 'line2', label: 'New', color: 'blue' },
     { id: 'line3', label: 'Task Force', color: 'yellow' },
+    { id: 'line1', label: 'Apprroved', color: 'green' },
     { id: 'line4', label: 'Reject', color: 'red' }
 
   ];

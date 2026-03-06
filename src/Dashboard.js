@@ -6,7 +6,7 @@ import MapLegend from './MapLegend';
 
 function Dashboard() {
     const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('tab1');
   const [xy1,setXY1]=useState({});
   const [fatureRecord,setFeatureRecord]=useState(null);
@@ -35,7 +35,7 @@ function Dashboard() {
             >
               <span className="navbar-toggler-icon"></span>
             </button>
-            <a className="navbar-brand fw-bold" href="#">PERMIT APP</a>
+            <a className="navbar-brand fw-bold" href="#">TNB ADKL SERVICE- PERMIT MONITORING</a>
           </div>
         </div>
       </nav>
@@ -109,7 +109,7 @@ function Dashboard() {
   {/* Table (70% width) */}
   <div
     style={{
-      flex: '0 0 55%', // 70% width
+      flex: '0 0 65%', // 70% width
       height: '100%',
       overflowY: 'auto', // Ensure the content is scrollable if it overflows
     }}
@@ -120,7 +120,7 @@ function Dashboard() {
   {/* Map (30% width) */}
   <div
     style={{
-      flex: '0 0 45%', // 30% width
+      flex: '0 0 35%', // 30% width
       height: '100%',
       overflowY: 'auto', // Ensure the content is scrollable if it overflows
     }}

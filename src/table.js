@@ -5,10 +5,17 @@ function Table({ setxy,onRowClick }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [recordsPerPage, setRecordsPerPage] = useState(5);
+  const [recordsPerPage, setRecordsPerPage] = useState(25);
   const [filterValues, setFilterValues] = useState({});
   const [filteredData, setFilteredData] = useState([]);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  
+  // New state for sorting
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: 'ascending'
+  });
+  
 
   // Subscribe to a custom event for new records
   useEffect(() => {
@@ -61,19 +68,18 @@ function Table({ setxy,onRowClick }) {
     return null;
   };
 
-  // Apply filters when data or filter values change
+  // Apply filters and sorting when data, filter values, or sort config change
   useEffect(() => {
-    applyFilters();
-  }, [data, filterValues]);
+    applyFiltersAndSort();
+  }, [data, filterValues, sortConfig]);
 
   const fetchData = () => {
     setLoading(true);
     // Fetch data from PHP backend
-    fetch('http://121.121.232.54:88/permit/fetchData.php')
+    fetch('http://121.121.232.54:88/permit/fetchData.php?user='+localStorage.getItem('user'))
       .then((response) => response.json())
       .then((fetchedData) => {
         setData(fetchedData);
-        setFilteredData(fetchedData);
         setLoading(false);
       })
       .catch((error) => {
@@ -96,8 +102,8 @@ function Table({ setxy,onRowClick }) {
     ));
   };
 
-  // Apply filters to the data
-  const applyFilters = () => {
+  // Apply filters and sorting to the data
+  const applyFiltersAndSort = () => {
     let filtered = [...data];
     
     // Apply each filter if it has a value
@@ -110,8 +116,58 @@ function Table({ setxy,onRowClick }) {
       }
     });
     
+    // Apply sorting
+    if (sortConfig.key !== null) {
+      filtered.sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+        
+        // Handle null/undefined values
+        if (aValue === null || aValue === undefined) return 1;
+        if (bValue === null || bValue === undefined) return -1;
+        
+        // Convert to string for comparison if not already
+        const aStr = aValue.toString();
+        const bStr = bValue.toString();
+        
+        // Check if values are numeric
+        const aNum = parseFloat(aStr);
+        const bNum = parseFloat(bStr);
+        const isNumeric = !isNaN(aNum) && !isNaN(bNum);
+        
+        let comparison = 0;
+        if (isNumeric) {
+          comparison = aNum - bNum;
+        } else {
+          comparison = aStr.localeCompare(bStr);
+        }
+        
+        return sortConfig.direction === 'ascending' ? comparison : -comparison;
+      });
+    }
+    
     setFilteredData(filtered);
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1); // Reset to first page when filtering or sorting
+  };
+
+  // Handle sorting
+  const requestSort = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Get sort icon for column header
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return <i className="bi bi-arrow-down-up text-muted ms-1"></i>;
+    }
+    if (sortConfig.direction === 'ascending') {
+      return <i className="bi bi-arrow-up text-primary ms-1"></i>;
+    }
+    return <i className="bi bi-arrow-down text-primary ms-1"></i>;
   };
 
   // Handle filter input change
@@ -122,9 +178,10 @@ function Table({ setxy,onRowClick }) {
     }));
   };
 
-  // Clear all filters
+  // Clear all filters and sorting
   const clearFilters = () => {
     setFilterValues({});
+    setSortConfig({ key: null, direction: 'ascending' });
   };
 
   // Toggle filter panel
@@ -132,41 +189,43 @@ function Table({ setxy,onRowClick }) {
     setIsFilterPanelOpen(!isFilterPanelOpen);
   };
 
-  // Column definitions with friendly names
+  // Column definitions with friendly names - FIXED: Made serial_no sortable
   const columns = [
-    { key: 'id', label: 'ID' },
-    { key: 'type', label: 'Type' },
-    { key: 'ba', label: 'BA' },
-    { key: 'tahun', label: 'Year' },
+    { key: 'serial_no', label: 'Serial No.', sortable: true }, // Changed from false to true
+   // { key: 'id', label: 'ID' },
+    { key: 'type', label: 'Type', sortable: true },
+    { key: 'ba', label: 'BA', sortable: true },
+    { key: 'tahun', label: 'Year', sortable: true },
     // { key: 'sn', label: 'Serial No.' },
     // { key: 'tarikh_csp', label: 'CSP Date' },
     // { key: 'jenis_kerja', label: 'Work Type' },
-    { key: 'nama_jalan', label: 'Street Name' },
+    { key: 'nama_jalan', label: 'Street Name', sortable: true },
     // { key: 'tarikh_lulus_opa_tnb', label: 'TNB OPA Approval' },
     // { key: 'tarikh_fail_mo', label: 'MO File Date' },
     // { key: 'pic_dbkl', label: 'DBKL PIC' },
-    // { key: 'file_no', label: 'File No.' },
+     { key: 'file_no', label: 'File No.', sortable: true },
     // { key: 'pbt', label: 'PBT' },
     // { key: 'jenis_bayaran', label: 'Payment Type' },
-    { key: 'rm', label: 'Amount (RM)' },
-    { key: 'status_permit', label: 'Permit Status' },
-    { key: 'tarikh_permit', label: 'Permit Date' },
-    // { key: 'tarikh_tamat_kerja', label: 'Work End Date' },
+    //{ key: 'rm', label: 'Amount (RM)' },
+    { key: 'status_permit', label: 'Permit Status', sortable: true },
+    { key: 'tarikh_permit', label: 'Permit Date', sortable: true },
+     { key: 'tarikh_tamat_kerja', label: 'Work Completion Date', sortable: true },
     // { key: 'tarikh_hantar_cbr_test', label: 'CBR Test Submission' },
-    // { key: 'tarikh_siap_milling', label: 'Milling Completion' },
+     { key: 'tarikh_siap_milling', label: 'Milling Completion', sortable: true },
     // { key: 'tarikh_hantar_report', label: 'Report Submission' },
     // { key: 'status_permit_teikini', label: 'Current Permit Status' },
     // { key: 'catatan', label: 'Notes' }
-    {key:'Action',label:'Action'},
-    {key:'Zoom',label:'Zoom'}
+    {key:'Action',label:'Action', sortable: false},
+    {key:'Zoom',label:'Zoom', sortable: false}
   ];
 
-  // Specify which columns you want to include in the filter
+  // Specify which columns you want to include in the filter - ADDED serial_no to filterable columns
   const filterableColumns = [
+    { key: 'serial_no', label: 'Serial No.' }, // Added this line
     { key: 'type', label: 'Type' },
     { key: 'ba', label: 'BA' },
-    { key: 'tahun', label: 'Year' }, 
-    // { key: 'jenis_kerja', label: 'Work Type' },
+    { key: 'file_no', label: 'File No.' }, 
+     { key: 'nama_jalan', label: 'Street Name' },
     { key: 'status_permit', label: 'Permit Status' }
   ];
 
@@ -216,7 +275,7 @@ function Table({ setxy,onRowClick }) {
     
     if (response.ok && result.success) {
       alert('Record deleted successfully!');
-      
+       fetchData();
       // Call parent component function to update the list if needed
       // refreshList(); // uncomment if you have this function
       
@@ -233,8 +292,13 @@ function Table({ setxy,onRowClick }) {
 };
 
 
-  // Check if any filters are active
+  // Check if any filters are active or sorting is applied
   const hasActiveFilters = Object.values(filterValues).some(value => value && value.trim() !== '');
+  const hasSorting = sortConfig.key !== null;
+
+  const formatSerialNumber = (number) => {
+    return number.toString().padStart(4, '0');
+};
 
   return (
     <div className="container-fluid mt-2">
@@ -259,16 +323,18 @@ function Table({ setxy,onRowClick }) {
                   <i className={`bi ${isFilterPanelOpen ? 'bi-chevron-down' : 'bi-chevron-right'}`}></i>
                 </button>
                 <h5 className="mb-0">
-                  Filters {hasActiveFilters && <span className="badge bg-primary ms-2">Active</span>}
+                  Filters 
+                  {hasActiveFilters && <span className="badge bg-primary ms-2">Filtered</span>}
+                  {hasSorting && <span className="badge bg-success ms-2">Sorted</span>}
                 </h5>
               </div>
               <div>
-                {hasActiveFilters && (
+                {(hasActiveFilters || hasSorting) && (
                   <button 
                     className="btn btn-sm btn-outline-secondary" 
                     onClick={clearFilters}
                   >
-                    Clear Filters
+                    Clear All
                   </button>
                 )}
               </div>
@@ -292,6 +358,14 @@ function Table({ setxy,onRowClick }) {
                     </div>
                   ))}
                 </div>
+                {hasSorting && (
+                  <div className="mt-3 pt-3 border-top">
+                    <small className="text-muted">
+                      Currently sorted by: <strong>{columns.find(col => col.key === sortConfig.key)?.label}</strong> 
+                      ({sortConfig.direction})
+                    </small>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -324,22 +398,38 @@ function Table({ setxy,onRowClick }) {
               <thead className="table">
                 <tr>
                   {columns.map((column) => (
-                    <th key={column.key} scope="col">{column.label}</th>
+                    <th 
+                      key={column.key} 
+                      scope="col"
+                      className={column.sortable ? 'user-select-none' : ''}
+                      style={{ cursor: column.sortable ? 'pointer' : 'default' }}
+                      onClick={() => column.sortable && requestSort(column.key)}
+                    >
+                      <div className="d-flex align-items-center justify-content-between">
+                        {column.label}
+                        {column.sortable && getSortIcon(column.key)}
+                      </div>
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {currentRecords.length > 0 ? (
-                  currentRecords.map((record) => (
+                  currentRecords.map((record,index) => (
                     <tr 
                       key={record.id} 
                       onClick={() => onRowClick(record)}
                       style={{ cursor: 'pointer' }}
                     >
+
                       {columns.map((column) => (
                         <td key={`${record.id}-${column.key}`}>
                         {
-                          
+                          column.key === 'serial_no' ? (
+                            // formatSerialNumber((currentPage - 1) * recordsPerPage + index + 1)
+                            record[column.key]
+
+                        ) : 
                          column.key === 'Action' ? (
                          <button type="button" className="btn btn-danger"   onClick={(e) => {
                           e.stopPropagation();

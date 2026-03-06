@@ -1,267 +1,336 @@
 // src/FormComponent.js
-import React, { useState, useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import Table from './table';
-import MapComponent from './MapComponent';
+import React, { useState, useEffect } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import Table from "./table";
+import MapComponent from "./MapComponent";
 
-function FormComponent({setXY1,fatureRecord}) {
-    const [formData, setFormData] = useState({
-        type: '',
-        ba: '',
-        tahun: new Date().getFullYear(),
-        sn: '',
-        tarikh_csp: '',
-        jenis_kerja: '',
-        nama_jalan: '',
-        tarikh_lulus_opa_tnb: '',
-        tarikh_fail_mo: '',
-        pic_dbkl: '',
-        file_no: '',
-        pbt: '',
-        jenis_bayaran: '',
-        rm: '',
-        status_permit: '',
-        tarikh_permit: '',
-        tarikh_tamat_kerja: '',
-        tarikh_hantar_cbr_test: '',
-        tarikh_siap_milling: '',
-        tarikh_hantar_report: '',
-        status_permit_teikini: '',
-        geom:'',
-        catatan: ''
-      });
-    
-      const [isFormOpen, setIsFormOpen] = useState(false);
-      const [isEditing, setIsEditing] = useState(false);
-      const [dataType,setDataType]=useState('');
-      const [mapKey, setMapKey] = useState(Date.now());
-      const [xy,setxy]=useState({})
+function FormComponent({ setXY1, fatureRecord }) {
+  const [formData, setFormData] = useState({
+    type: "",
+    ba: "",
+    tahun: new Date().getFullYear(),
+    sn: "",
+    tarikh_csp: "",
+    jenis_kerja: "",
+    nama_jalan: "",
+    tarikh_lulus_opa_tnb: "",
+    tarikh_fail_mo: "",
+    pic_dbkl: "",
+    file_no: "",
+    pbt: "",
+    jenis_bayaran: "",
+    rm: "",
+    status_permit: "NEW",
+    tarikh_permit: "",
+    tarikh_tamat_kerja: "",
+    tarikh_hantar_cbr_test: "",
+    tarikh_siap_milling: "",
+    tarikh_hantar_report: "",
+    status_permit_teikini: "",
+    geom: "",
+    catatan: "",
+  });
 
-    useEffect(() => {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [dataType, setDataType] = useState("");
+  const [mapKey, setMapKey] = useState(Date.now());
+  const [xy, setxy] = useState({});
+
+  useEffect(() => {
     setXY1(xy);
-    }, [xy])
-  
-    useEffect(()=>{
-        if (fatureRecord !== null) {
+  }, [xy]);
 
-      handleRowClick(fatureRecord)
-        }
-    },[fatureRecord])
+  useEffect(() => {
+    if (fatureRecord !== null) {
+      handleRowClick(fatureRecord);
+    }
+  }, [fatureRecord]);
 
-      const handleGeoJSONUpdate = (geoJSON) => {
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          geom: geoJSON, // Update the geom field with the new GeoJSON
-        }));
-      };
-    
-      const handleChange = (e) => {
-        const { name, value } = e.target;
-        setDataType(value)
-        setFormData(prevState => ({
-          ...prevState,
-          [name]: value
-        }));
-      };
-    
-      const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-          const response = await fetch('http://121.121.232.54:88/permit/save_permit.php', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok) {
-            alert(result.message);
-            
-            // Create a complete record with the returned ID
-            const updatedRecord = {
-              ...formData,
-              id: result.id
-            };
-            
-            // Dispatch appropriate event based on operation type
-            if (isEditing) {
-              window.dispatchEvent(new CustomEvent('recordUpdated', { 
-                detail: updatedRecord
-              }));
-            } else {
-              window.dispatchEvent(new CustomEvent('newRecordAdded', { 
-                detail: updatedRecord
-              }));
-            }
-            
-            resetForm();
-            setIsFormOpen(false);
-          } else {
-            throw new Error(result.error || 'Failed to save permit data');
-          }
-        } catch (error) {
-          console.error('Error saving permit data:', error);
-          alert('Error saving permit data. Please try again.');
-        }
-      };
-    
-      const resetForm = () => {
-        setFormData({
-          type: '',
-          ba: '',
-          tahun: new Date().getFullYear(),
-          sn: '',
-          tarikh_csp: '',
-          jenis_kerja: '',
-          nama_jalan: '',
-          tarikh_lulus_opa_tnb: '',
-          tarikh_fail_mo: '',
-          pic_dbkl: '',
-          file_no: '',
-          pbt: '',
-          jenis_bayaran: '',
-          rm: '',
-          status_permit: '',
-          tarikh_permit: '',
-          tarikh_tamat_kerja: '',
-          tarikh_hantar_cbr_test: '',
-          tarikh_siap_milling: '',
-          tarikh_hantar_report: '',
-          status_permit_teikini: '',
-          geom:'',
-          catatan: ''
-        });
-        setMapKey(Date.now());
-        setIsEditing(false);
-      };
-    
-      const openNewForm = () => {
-        resetForm();
-        setIsFormOpen(true);
-      };
-    
-      const handleRowClick = (record) => {
-        // First completely reset the form to clear any previous values
-        resetForm();
-        
-        // Create a new object with all form fields explicitly set
-        // If record.geom is undefined or null, ensure we use an empty string
+  const handleGeoJSONUpdate = (geoJSON) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      geom: geoJSON, // Update the geom field with the new GeoJSON
+    }));
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name == "type") {
+      setDataType(value);
+    }
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.geom == "") {
+      alert("please Draw geom first");
+      return;
+    }
+    try {
+      const response = await fetch(
+        "http://121.121.232.54:88/permit/save_permit.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        },
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(result.message);
+
+        // Create a complete record with the returned ID
         const updatedRecord = {
-            ...formData, // Start with the default empty values
-            ...record,    // Override with record values
-            geom: record.geom || '' // Explicitly handle geom field
+          ...formData,
+          id: result.id,
         };
-        
-        setFormData(updatedRecord);
-        setMapKey(Date.now());
-        setIsEditing(true);
-        setIsFormOpen(true);
-    };
-    
-      const closeForm = () => {
+        window.location.reload();
+        // Dispatch appropriate event based on operation type
+        if (isEditing) {
+          window.dispatchEvent(
+            new CustomEvent("recordUpdated", {
+              detail: updatedRecord,
+            }),
+          );
+        } else {
+          window.dispatchEvent(
+            new CustomEvent("newRecordAdded", {
+              detail: updatedRecord,
+            }),
+          );
+        }
+
+        resetForm();
         setIsFormOpen(false);
-      };
-    
-   const deleteRec = async (id) => {
-  // Show confirmation dialog first
-  if (!window.confirm("Are you sure you want to delete this record?")) {
-    return false;
-  }
-  
-  try {
-    const response = await fetch('http://121.121.232.54:88/permit/delete_permit.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ id: id })
+      } else {
+        throw new Error(result.error || "Failed to save permit data");
+      }
+    } catch (error) {
+      console.error("Error saving permit data:", error);
+      alert("Error saving permit data. Please try again.");
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      type: "",
+      ba: "",
+      tahun: new Date().getFullYear(),
+      sn: "",
+      tarikh_csp: "",
+      jenis_kerja: "",
+      nama_jalan: "",
+      tarikh_lulus_opa_tnb: "",
+      tarikh_fail_mo: "",
+      pic_dbkl: "",
+      file_no: "",
+      pbt: "",
+      jenis_bayaran: "",
+      rm: "",
+      status_permit: "NEW",
+      tarikh_permit: "",
+      tarikh_tamat_kerja: "",
+      tarikh_hantar_cbr_test: "",
+      tarikh_siap_milling: "",
+      tarikh_hantar_report: "",
+      status_permit_teikini: "",
+      geom: "",
+      catatan: "",
     });
-    
-    const result = await response.json();
-    
-    if (response.ok && result.success) {
-      alert('Record deleted successfully!');
-      
-      // Reset form and close modal only after successful deletion
-      resetForm();
-      setIsFormOpen(false);
-      
-      // Call parent component function to update the list if needed
-      // refreshList(); // uncomment if you have this function
-      
-      return true;
-    } else {
-      alert(result.message || 'Failed to delete record');
+    setMapKey(Date.now());
+    setIsEditing(false);
+  };
+
+  const openNewForm = () => {
+    resetForm();
+    setIsFormOpen(true);
+  };
+
+  const handleRowClick = (record) => {
+    // First completely reset the form to clear any previous values
+    resetForm();
+
+    // Create a new object with all form fields explicitly set
+    // If record.geom is undefined or null, ensure we use an empty string
+    const updatedRecord = {
+      ...formData, // Start with the default empty values
+      ...record, // Override with record values
+      geom: record.geom || "", // Explicitly handle geom field
+    };
+    setFormData(updatedRecord);
+    setMapKey(Date.now());
+    setIsEditing(true);
+    setIsFormOpen(true);
+    setDataType(record.type);
+  };
+
+  const closeForm = () => {
+    setIsFormOpen(false);
+  };
+
+  const deleteRec = async (id) => {
+    // Show confirmation dialog first
+    if (!window.confirm("Are you sure you want to delete this record?")) {
       return false;
     }
-  } catch (error) {
-    console.error('Error deleting record:', error);
-    alert('Network error occurred while deleting');
-    return false;
-  }
-};
 
+    try {
+      const response = await fetch(
+        "http://121.121.232.54:88/permit/delete_permit.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: id }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert("Record deleted successfully!");
+
+        // Reset form and close modal only after successful deletion
+        resetForm();
+        setIsFormOpen(false);
+
+        // Call parent component function to update the list if needed
+        // refreshList(); // uncomment if you have this function
+
+        return true;
+      } else {
+        alert(result.message || "Failed to delete record");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      alert("Network error occurred while deleting");
+      return false;
+    }
+  };
+
+  const renderBAOptions = () => {
+    if (localStorage.getItem("user") === "admin") {
+      return (
+        <>
+          <option value="">Select a BA</option>
+          <option value="6121">6121</option>
+          <option value="6122">6122</option>
+          <option value="6123">6123</option>
+          <option value="6124">6124</option>
+        </>
+      );
+    } else if (localStorage.getItem("user") === "KLB") {
+      return (
+        <>
+          <option value="">Select a BA</option>
+          <option value="6121">6121</option>
+        </>
+      );
+    } else if (localStorage.getItem("user") === "KLB 6122") {
+      return (
+        <>
+          <option value="">Select a BA</option>
+          <option value="6122">6122</option>
+        </>
+      );
+    } else if (localStorage.getItem("user") === "KLP") {
+      return (
+        <>
+          <option value="">Select a BA</option>
+          <option value="6123">6123</option>
+        </>
+      );
+    } else if (localStorage.getItem("user") === "KLS") {
+      return (
+        <>
+          <option value="">Select a BA</option>
+          <option value="6124">6124</option>
+        </>
+      );
+    } else {
+      // Default fallback
+      return (
+        <>
+          <option value="">Select a BA</option>
+          <option value="6121">6121</option>
+          <option value="6122">6122</option>
+          <option value="6123">6123</option>
+          <option value="6124">6124</option>
+        </>
+      );
+    }
+  };
 
   return (
     <div className="container-fluid">
       <div className="row">
         <div className="col-12">
           <div className="card">
-            <div className="card-header  text-white d-flex justify-content-between align-items-center" style={{backgroundColor:'#3f51b5' }}>
+            <div
+              className="card-header  text-white d-flex justify-content-between align-items-center"
+              style={{ backgroundColor: "#3f51b5" }}
+            >
               <h2 className="mb-0">Permit Records</h2>
-              <button 
-                className="btn btn-light" 
-                onClick={openNewForm}
-              >
+              <button className="btn btn-light" onClick={openNewForm}>
                 Add New Permit
               </button>
             </div>
-            </div>
-            <div className="card-body">
-              <Table setxy={setxy} onRowClick={handleRowClick} />
-            </div>
-          
+          </div>
+          <div className="card-body">
+            <Table setxy={setxy} onRowClick={handleRowClick} />
+          </div>
         </div>
       </div>
 
       {/* Sliding Form */}
-      <div 
-        className="position-fixed top-0 end-0 h-100 bg-white shadow-lg" 
+      <div
+        className="position-fixed top-0 end-0 h-100 bg-white shadow-lg"
         style={{
-          width: '800px',
-          transform: isFormOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s ease-in-out',
+          width: "800px",
+          transform: isFormOpen ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 0.3s ease-in-out",
           zIndex: 1050,
-          overflowY: 'auto'
+          overflowY: "auto",
         }}
       >
         <div className="p-3">
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h3>{isEditing ? 'Edit Permit' : 'New Permit'}</h3>
-            <button className="btn btn-sm btn-outline-secondary" onClick={closeForm}>
+            <h3>{isEditing ? "Edit Permit" : "New Permit"}</h3>
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              onClick={closeForm}
+            >
               &times;
             </button>
           </div>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="row g-2">
               <div className="col-md-6">
                 <div className="form-group">
                   <label className="form-label">Type</label>
                   <select
-                      name="type"
-                      value={formData.type}
-                      onChange={handleChange}
-                      className="form-control"
-                      required
-                    >
-                      <option value="">Select a type</option>
-                      <option value="DBKL">DBKL</option>
-                      <option value="PBT">PBT</option>
-                   </select>
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    className="form-control"
+                    required
+                  >
+                    <option value="">Select a type</option>
+                    <option value="DBKL">DBKL</option>
+                    <option value="PBT">PBT</option>
+                  </select>
                 </div>
               </div>
 
@@ -275,12 +344,13 @@ function FormComponent({setXY1,fatureRecord}) {
                     className="form-control"
                     required
                   >
-                    <option value="">Select a BA</option>
+                    {/* <option value="">Select a BA</option>
                       <option value="6121">6121</option>
                       <option value="6122">6122</option>
                       <option value="6123">6123</option>
-                      <option value="6124">6124</option>
-                   </select>
+                      <option value="6124">6124</option> */}
+                    {renderBAOptions()}
+                  </select>
                 </div>
               </div>
 
@@ -300,7 +370,7 @@ function FormComponent({setXY1,fatureRecord}) {
 
               <div className="col-md-6">
                 <div className="form-group">
-                  <label className="form-label">Serial No.</label>
+                  <label className="form-label">SN No.</label>
                   <input
                     type="text"
                     name="sn"
@@ -311,7 +381,7 @@ function FormComponent({setXY1,fatureRecord}) {
                   />
                 </div>
               </div>
-               <div className="col-md-6">
+              <div className="col-md-6">
                 <div className="form-group">
                   <label className="form-label">Street Name</label>
                   <input
@@ -339,7 +409,7 @@ function FormComponent({setXY1,fatureRecord}) {
                 </div>
               </div>
 
-                <div className="col-md-6">
+              <div className="col-md-6">
                 <div className="form-group">
                   <label className="form-label">File No.</label>
                   <input
@@ -352,28 +422,28 @@ function FormComponent({setXY1,fatureRecord}) {
                 </div>
               </div>
 
-                {dataType=='DBKL' && (<div className="col-md-6">
-                <div className="form-group">
-                  <label className="form-label">DBKL PIC</label>
-                  <select
-                    name="pic_dbkl"
-                    value={formData.pic_dbkl}
-                    onChange={handleChange}
-                    className="form-control"
-                  >
+              {dataType == "DBKL" && (
+                <div className="col-md-6">
+                  <div className="form-group">
+                    <label className="form-label">DBKL PIC</label>
+                    <select
+                      name="pic_dbkl"
+                      value={formData.pic_dbkl}
+                      onChange={handleChange}
+                      className="form-control"
+                    >
                       <option value="">Select Work Type</option>
-                      <option value="SYUKRI">SYUKRI</option>
-                      <option value="AFFENDY">AFFENDY</option>
-                      <option value="WAN SAIFUL">WAN SAIFUL</option>
-                      <option value="TAQIYAH">TAQIYAH</option>
-                      <option value="DIN">DIN</option>
-
-                     
-                   </select>
+                      <option value="Fazli">Fazli</option>
+                      <option value="Zul">Zul</option>
+                      <option value="Firdaus">Firdaus</option>
+                      <option value="Taqiyah">Taqiyah</option>
+                      <option value="Affendy">Affendy</option>
+                    </select>
+                  </div>
                 </div>
-              </div>)}
+              )}
 
-                {/* <div className="col-md-6">
+              {/* <div className="col-md-6">
                 <div className="form-group">
                   <label className="form-label">Permit Status</label>
                   <select
@@ -410,8 +480,6 @@ function FormComponent({setXY1,fatureRecord}) {
                 </div>
               </div> */}
 
-             
-
               <div className="col-md-6">
                 <div className="form-group">
                   <label className="form-label">TNB OPA Approval Date</label>
@@ -427,7 +495,7 @@ function FormComponent({setXY1,fatureRecord}) {
 
               <div className="col-md-6">
                 <div className="form-group">
-                  <label className="form-label">MO File Date</label>
+                  <label className="form-label">File No Date</label>
                   <input
                     type="date"
                     name="tarikh_fail_mo"
@@ -438,26 +506,24 @@ function FormComponent({setXY1,fatureRecord}) {
                 </div>
               </div>
 
-            
-
-            
-
-              {dataType=='PBT' && (<div className="col-md-6">
-                <div className="form-group">
-                  <label className="form-label">PBT</label>
-                  <select
-                    name="pbt"
-                    value={formData.pbt}
-                    onChange={handleChange}
-                    className="form-control"
-                  >
-                   <option value="">Select PBT</option>
+              {dataType == "PBT" && (
+                <div className="col-md-6">
+                  <div className="form-group">
+                    <label className="form-label">PBT</label>
+                    <select
+                      name="pbt"
+                      value={formData.pbt}
+                      onChange={handleChange}
+                      className="form-control"
+                    >
+                      <option value="">Select PBT</option>
                       <option value="MPS">MPS</option>
                       <option value=" KUSEL"> KUSEL</option>
                       <option value=" MPAJ"> MPAJ</option>
-                   </select>
+                    </select>
+                  </div>
                 </div>
-              </div>)}
+              )}
 
               <div className="col-md-6">
                 <div className="form-group">
@@ -468,11 +534,10 @@ function FormComponent({setXY1,fatureRecord}) {
                     onChange={handleChange}
                     className="form-control"
                   >
-                      <option value="">Select Jenis Bayaran</option>
-                      <option value="WANG CAGARAN">WANG CAGARAN</option>
-                      <option value=" WANG HANGUS"> WANG HANGUS</option>
-                     
-                   </select>
+                    <option value="">Select Jenis Bayaran</option>
+                    <option value="WANG CAGARAN">WANG CAGARAN</option>
+                    <option value=" WANG HANGUS"> WANG HANGUS</option>
+                  </select>
                 </div>
               </div>
 
@@ -495,18 +560,17 @@ function FormComponent({setXY1,fatureRecord}) {
                   <label className="form-label">Permit Status</label>
                   <select
                     name="status_permit"
-                    value={formData.status_permit}
+                    value={formData.status_permit || "NEW"}
                     onChange={handleChange}
                     className="form-control"
                   >
-                     <option value="">Select Permit Status</option>
-                      <option value="APPROVED">APPROVED</option>
-                      <option value="NEW">NEW</option>
-                      <option value="TASK FORCE">TASK FORCE MTG</option>
-                      <option value="REJECT">REJECT</option>
-
-                     
-                   </select>
+                    <option value="">Select Permit Status</option>
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="NEW">NEW</option>
+                    <option value="TASK FORCE">TASK FORCE MTG</option>
+                    <option value="REJECT">REJECT</option>
+                    <option value="MIGRATE">MIGRATE</option>
+                  </select>
                 </div>
               </div>
 
@@ -597,7 +661,8 @@ function FormComponent({setXY1,fatureRecord}) {
                     value={formData.geom}
                     onChange={handleChange}
                     className="form-control"
-                   hidden/>
+                    hidden
+                  />
                 </div>
               </div>
 
@@ -614,36 +679,40 @@ function FormComponent({setXY1,fatureRecord}) {
                 </div>
               </div>
 
-              <MapComponent  key={mapKey}    onGeoJSONUpdate={handleGeoJSONUpdate}  mygeom={formData.geom} />
-
+              <MapComponent
+                key={mapKey}
+                onGeoJSONUpdate={handleGeoJSONUpdate}
+                mygeom={formData.geom}
+              />
             </div>
 
             <div className="mt-4 d-flex justify-content-between">
-              <button type="button" className="btn btn-secondary" onClick={resetForm}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={resetForm}
+              >
                 Reset
               </button>
-             {/* <button type="button" className="btn btn-danger" onClick={() => deleteRec(formData.id)}>
+              {/* <button type="button" className="btn btn-danger" onClick={() => deleteRec(formData.id)}>
               Delete
             </button> */}
               <button type="submit" className="btn btn-primary">
-                {isEditing ? 'Update' : 'Save'} Permit
+                {isEditing ? "Update" : "Save"} Permit
               </button>
             </div>
           </form>
-
-
-
         </div>
       </div>
 
       {/* Overlay when form is open */}
-      {isFormOpen && (
+      {/* {isFormOpen && (
         <div 
           className="position-fixed top-0 start-0 w-100 h-100 bg-dark"
           style={{ opacity: 0.5, zIndex: 1040 }}
           onClick={closeForm}
         ></div>
-      )}
+      )} */}
     </div>
   );
 }
